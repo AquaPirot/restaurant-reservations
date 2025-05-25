@@ -20,7 +20,10 @@ export default function CalendarView({ getReservationsForDate }) {
       days.push(null);
     }
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      // ISPRAVKA: koristi lokalno vreme umesto UTC
+      const dayDate = new Date(year, month, day);
+      dayDate.setHours(12, 0, 0, 0); // Postavi na podne da izbegneš timezone probleme
+      days.push(dayDate);
     }
     return days;
   };
