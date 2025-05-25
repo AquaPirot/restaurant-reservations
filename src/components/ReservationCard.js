@@ -44,7 +44,7 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
           </div>
           
           {reservation.notes && (
-            <p className="text-sm text-gray-500 mt-2 italic">"{reservation.notes}"</p>
+            <p className="text-sm text-gray-500 mt-2 italic">&quot;{reservation.notes}&quot;</p>
           )}
           
           <div className="text-xs text-gray-400 mt-2 flex items-center space-x-2">
