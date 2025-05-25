@@ -37,10 +37,75 @@ export default function ReservationSystem() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+     {/* Header - MOBILE FRIENDLY */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          {/* Mobile Layout - Stack vertically */}
+          <div className="block md:hidden">
+            {/* Title and Stats */}
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 flex items-center space-x-2 mb-2">
+                <Calendar className="w-5 h-5 text-blue-600" />
+                <span>Rezervacije</span>
+              </h1>
+              <p className="text-sm text-gray-600">
+                Ukupno: {reservations.length} | Danas: {getReservationsForDate(new Date()).length}
+              </p>
+            </div>
+            
+            {/* Main Actions Row */}
+            <div className="flex justify-between items-center mb-3">
+              <button
+                onClick={() => setCurrentView(currentView === 'week' ? 'calendar' : 'week')}
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm"
+              >
+                <span>{currentView === 'week' ? 'Kalendar' : 'Sedmica'}</span>
+              </button>
+              
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nova</span>
+              </button>
+            </div>
+            
+            {/* Data Management Row */}
+            <div className="flex justify-center space-x-2">
+              <button
+                onClick={exportData}
+                className="flex items-center space-x-1 px-2 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors text-xs"
+                title="Backup"
+              >
+                <Download className="w-3 h-3" />
+                <span>Backup</span>
+              </button>
+              
+              <label className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors cursor-pointer text-xs">
+                <Upload className="w-3 h-3" />
+                <span>Učitaj</span>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportChange}
+                  className="hidden"
+                />
+              </label>
+
+              <button
+                onClick={resetAllData}
+                className="flex items-center space-x-1 px-2 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors text-xs"
+                title="Reset"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Original horizontal */}
+          <div className="hidden md:flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
                 <Calendar className="w-6 h-6 text-blue-600" />
@@ -53,7 +118,6 @@ export default function ReservationSystem() {
             </div>
             
             <div className="flex space-x-2">
-              {/* Data Management Buttons */}
               <button
                 onClick={exportData}
                 className="flex items-center space-x-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors text-sm"
