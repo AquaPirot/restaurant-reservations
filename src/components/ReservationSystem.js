@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, Download, Upload, RotateCcw, Plus } from 'lucide-react';
+import { Calendar, Plus, RefreshCw } from 'lucide-react';
 import { useReservations } from '@/hooks/useReservations';
 import CalendarView from './CalendarView';
 import WeekView from './WeekView';
@@ -13,16 +13,31 @@ export default function ReservationSystem() {
   
   const {
     reservations,
+    loading,
+    error,
     addReservation,
     deleteReservation,
-    exportData,
-    importData,
-    resetAllData,
-    getReservationsForDate
+    getReservationsForDate,
+    refetch
   } = useReservations();
 
-  const handleImportChange = (event) => {
-    importData(event);
+  const handleAddReservation = async (reservationData) => {
+    try {
+      await addReservation(reservationData);
+      setShowAddForm(false);
+    } catch (error) {
+      alert('Greška pri dodavanju rezervacije: ' + error.message);
+    }
+  };
+
+  const handleDeleteReservation = async (id) => {
+    if (confirm('Da li ste sigurni da želite da obrišete ovu rezervaciju?')) {
+      try {
+        await deleteReservation(id);
+      } catch (error) {
+        alert('Greška pri brisanju rezervacije: ' + error.message);
+      }
+    }
   };
 
   const getNext7Days = () => {
@@ -35,9 +50,37 @@ export default function ReservationSystem() {
     return days;
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Učitavam rezervacije...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center bg-white p-6 rounded-lg shadow-sm">
+          <p className="text-red-600 mb-4">Greška: {error}</p>
+          <button
+            onClick={refetch}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Pokušaj ponovo</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-     {/* Header - MOBILE FRIENDLY */}
+      {/* Header - MOBILE FRIENDLY */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Mobile Layout - Stack vertically */}
@@ -71,40 +114,20 @@ export default function ReservationSystem() {
               </button>
             </div>
             
-            {/* Data Management Row */}
-            <div className="flex justify-center space-x-2">
+            {/* Refresh Button */}
+            <div className="flex justify-center">
               <button
-                onClick={exportData}
-                className="flex items-center space-x-1 px-2 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors text-xs"
-                title="Backup"
+                onClick={refetch}
+                className="flex items-center space-x-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors text-xs"
+                title="Osvezi podatke"
               >
-                <Download className="w-3 h-3" />
-                <span>Backup</span>
-              </button>
-              
-              <label className="flex items-center space-x-1 px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors cursor-pointer text-xs">
-                <Upload className="w-3 h-3" />
-                <span>Učitaj</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportChange}
-                  className="hidden"
-                />
-              </label>
-
-              <button
-                onClick={resetAllData}
-                className="flex items-center space-x-1 px-2 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors text-xs"
-                title="Reset"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset</span>
+                <RefreshCw className="w-3 h-3" />
+                <span>Osvezi</span>
               </button>
             </div>
           </div>
 
-          {/* Desktop Layout - Original horizontal */}
+          {/* Desktop Layout */}
           <div className="hidden md:flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
@@ -119,32 +142,12 @@ export default function ReservationSystem() {
             
             <div className="flex space-x-2">
               <button
-                onClick={exportData}
-                className="flex items-center space-x-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors text-sm"
-                title="Napravi backup"
+                onClick={refetch}
+                className="flex items-center space-x-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
+                title="Osvezi podatke"
               >
-                <Download className="w-4 h-4" />
-                <span>Backup</span>
-              </button>
-              
-              <label className="flex items-center space-x-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors cursor-pointer text-sm">
-                <Upload className="w-4 h-4" />
-                <span>Učitaj</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportChange}
-                  className="hidden"
-                />
-              </label>
-
-              <button
-                onClick={resetAllData}
-                className="flex items-center space-x-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors text-sm"
-                title="Obriši sve podatke"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Reset</span>
+                <RefreshCw className="w-4 h-4" />
+                <span>Osvezi</span>
               </button>
               
               <button
@@ -172,7 +175,7 @@ export default function ReservationSystem() {
           <WeekView 
             getNext7Days={getNext7Days}
             getReservationsForDate={getReservationsForDate}
-            onDeleteReservation={deleteReservation}
+            onDeleteReservation={handleDeleteReservation}
           />
         ) : (
           <CalendarView 
@@ -186,13 +189,13 @@ export default function ReservationSystem() {
         <ReservationForm
           isOpen={showAddForm}
           onClose={() => setShowAddForm(false)}
-          onSave={addReservation}
+          onSave={handleAddReservation}
         />
       )}
 
-      {/* Storage Info */}
+      {/* Database Info */}
       <div className="fixed bottom-4 right-4 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow">
-        Podaci se čuvaju lokalno na uređaju
+        Podaci se čuvaju u MySQL bazi
       </div>
     </div>
   );

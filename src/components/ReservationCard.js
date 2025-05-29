@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Clock, Users, Phone, PartyPopper, Edit, Trash2 } from 'lucide-react';
+import { Clock, Users, Phone, PartyPopper, Edit, Trash2, User, Baby } from 'lucide-react';
 
 export default function ReservationCard({ reservation, isCompact = false, onDelete }) {
   const handleDelete = () => {
@@ -19,7 +19,14 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
           <div className="flex items-center space-x-2 mb-2">
             <h4 className="font-semibold text-gray-900">{reservation.name}</h4>
             {reservation.type === 'birthday' && (
-              <PartyPopper className="w-4 h-4 text-pink-500" />
+              <div className="flex items-center space-x-1">
+                <PartyPopper className="w-4 h-4 text-pink-500" />
+                {reservation.birthdayMenu && (
+                  <span className="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full font-medium">
+                    {reservation.birthdayMenu} din
+                  </span>
+                )}
+              </div>
             )}
           </div>
           
@@ -28,14 +35,31 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
               <Clock className="w-4 h-4" />
               <span>{reservation.time}</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <Users className="w-4 h-4" />
-              <span>{reservation.guests} osoba</span>
-            </div>
+            
+            {/* Prikaz gostiju - drugačije za rođendane */}
+            {reservation.type === 'birthday' && reservation.adultsCount !== null ? (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1">
+                  <User className="w-4 h-4" />
+                  <span>{reservation.adultsCount}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Baby className="w-4 h-4" />
+                  <span>{reservation.childrenCount}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1">
+                <Users className="w-4 h-4" />
+                <span>{reservation.guests} osoba</span>
+              </div>
+            )}
+            
             <div className="flex items-center space-x-1">
               <Phone className="w-4 h-4" />
               <span>{reservation.phone}</span>
             </div>
+            
             {reservation.tableNumber && (
               <div className="text-blue-600 font-medium">
                 Sto {reservation.tableNumber}
@@ -43,12 +67,20 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
             )}
           </div>
           
+          {/* Dodatne info za rođendane */}
+          {reservation.type === 'birthday' && (
+            <div className="mt-2 text-xs text-pink-600 bg-pink-50 px-2 py-1 rounded">
+              Ukupno: {reservation.guests} gostiju
+              {reservation.birthdayMenu && ` • Meni: ${reservation.birthdayMenu} din`}
+            </div>
+          )}
+          
           {reservation.notes && (
             <p className="text-sm text-gray-500 mt-2 italic">&quot;{reservation.notes}&quot;</p>
           )}
           
           <div className="text-xs text-gray-400 mt-2 flex items-center space-x-2">
-            <span>Kreirao: {reservation.createdBy}</span>
+            <span>Zakazao: {reservation.createdBy}</span>
             <span>•</span>
             <span>{new Date(reservation.createdAt).toLocaleDateString('sr-RS')}</span>
           </div>

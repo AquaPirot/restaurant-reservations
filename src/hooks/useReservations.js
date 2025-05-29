@@ -1,91 +1,84 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorage } from '@/lib/localStorage';
 
 export function useReservations() {
   const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Učitaj podatke iz localStorage pri pokretanju
-  useEffect(() => {
-    const savedReservations = loadFromLocalStorage();
-    if (savedReservations) {
-      setReservations(savedReservations);
+  // Učitaj rezervacije iz baze
+  const fetchReservations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/reservations');
+      if (!response.ok) {
+        throw new Error('Greška pri učitavanju rezervacija');
+      }
+      const data = await response.json();
+      setReservations(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Greška:', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Učitaj rezervacije pri prvom pokretanju
+  useEffect(() => {
+    fetchReservations();
   }, []);
 
-  // Sačuvaj u localStorage kad se promene rezervacije
-  useEffect(() => {
-    saveToLocalStorage(reservations);
-  }, [reservations]);
-
   // Dodaj novu rezervaciju
-  const addReservation = (reservation) => {
-    setReservations(prev => [...prev, reservation]);
+  const addReservation = async (reservationData) => {
+    try {
+      const response = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reservationData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Greška pri dodavanju rezervacije');
+      }
+
+      const newReservation = await response.json();
+      setReservations(prev => [...prev, newReservation]);
+      return newReservation;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
   // Obriši rezervaciju
-  const deleteReservation = (id) => {
-    setReservations(prev => prev.filter(res => res.id !== id));
-  };
+  const deleteReservation = async (id) => {
+    try {
+      const response = await fetch(`/api/reservations?id=${id}`, {
+        method: 'DELETE',
+      });
 
-  // Ažuriraj rezervaciju
-  const updateReservation = (id, updatedData) => {
-    setReservations(prev => 
-      prev.map(res => 
-        res.id === id ? { ...res, ...updatedData } : res
-      )
-    );
+      if (!response.ok) {
+        throw new Error('Greška pri brisanju rezervacije');
+      }
+
+      setReservations(prev => prev.filter(res => res.id !== id));
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
   };
 
   // Filtriraj rezervacije za određeni dan
   const getReservationsForDate = (date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return reservations.filter(res => res.date === dateStr)
+    return reservations
+      .filter(res => res.date === dateStr)
       .sort((a, b) => a.time.localeCompare(b.time));
-  };
-
-  // Export podataka u JSON fajl
-  const exportData = () => {
-    const dataStr = JSON.stringify(reservations, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `rezervacije_backup_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-  };
-
-  // Import podataka iz JSON fajla
-  const importData = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        if (Array.isArray(importedData)) {
-          setReservations(importedData);
-          alert(`Uspešno učitano ${importedData.length} rezervacija!`);
-        } else {
-          alert('Neispravan format fajla!');
-        }
-      } catch (error) {
-        alert('Greška pri čitanju fajla!');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset input
-  };
-
-  // Resetuj sve podatke
-  const resetAllData = () => {
-    if (confirm('Da li ste sigurni da želite da obrišete SVE rezervacije? Ova akcija se ne može poništiti!')) {
-      setReservations([]);
-      clearLocalStorage();
-      alert('Svi podaci su obrisani!');
-    }
   };
 
   // Statistike
@@ -103,13 +96,12 @@ export function useReservations() {
 
   return {
     reservations,
+    loading,
+    error,
     addReservation,
     deleteReservation,
-    updateReservation,
     getReservationsForDate,
-    exportData,
-    importData,
-    resetAllData,
-    getStats
+    getStats,
+    refetch: fetchReservations
   };
 }

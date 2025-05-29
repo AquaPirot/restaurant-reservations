@@ -9,22 +9,34 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
     date: '',
     time: '',
     guests: 1,
+    // Rođendan specifična polja
+    adultsCount: 1,
+    childrenCount: 0,
+    birthdayMenu: '780', // 780 ili 980 dinara
     tableNumber: '',
     type: 'standard',
     notes: '',
-    createdBy: 'Konobar'
+    createdBy: ''
   });
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.phone || !formData.date || !formData.time) {
+    if (!formData.name || !formData.phone || !formData.date || !formData.time || !formData.createdBy) {
       alert('Molimo unesite sva obavezna polja!');
       return;
     }
 
+    // Za rođendan rezervacije, calculiraj ukupan broj gostiju
+    const totalGuests = formData.type === 'birthday' 
+      ? parseInt(formData.adultsCount) + parseInt(formData.childrenCount)
+      : parseInt(formData.guests);
+
     const reservation = {
       ...formData,
       id: Date.now(),
-      guests: parseInt(formData.guests),
+      guests: totalGuests,
+      adultsCount: formData.type === 'birthday' ? parseInt(formData.adultsCount) : null,
+      childrenCount: formData.type === 'birthday' ? parseInt(formData.childrenCount) : null,
+      birthdayMenu: formData.type === 'birthday' ? formData.birthdayMenu : null,
       tableNumber: parseInt(formData.tableNumber) || null,
       createdAt: new Date().toISOString()
     };
@@ -38,10 +50,13 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
       date: '',
       time: '',
       guests: 1,
+      adultsCount: 1,
+      childrenCount: 0,
+      birthdayMenu: '780',
       tableNumber: '',
       type: 'standard',
       notes: '',
-      createdBy: 'Konobar'
+      createdBy: ''
     });
     
     onClose();
@@ -107,32 +122,7 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Broj osoba</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={formData.guests}
-                  onChange={(e) => handleChange('guests', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Broj stola</label>
-                <input
-                  type="number"
-                  value={formData.tableNumber}
-                  onChange={(e) => handleChange('tableNumber', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Opciono"
-                />
-              </div>
-            </div>
-
-<div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tip rezervacije</label>
               <select
                 value={formData.type}
@@ -144,14 +134,108 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
               </select>
             </div>
 
+            {/* ROĐENDAN SPECIFIČNA POLJA */}
+            {formData.type === 'birthday' ? (
+              <>
+                {/* Broj odraslih i dece */}
+                <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                  <h4 className="text-sm font-semibold text-pink-800 mb-3 flex items-center">
+                    🎂 Rođendanska rezervacija
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Broj odraslih</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={formData.adultsCount}
+                        onChange={(e) => handleChange('adultsCount', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Broj dece</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="20"
+                        value={formData.childrenCount}
+                        onChange={(e) => handleChange('childrenCount', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Meni opcije */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Rođendanski meni</label>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          value="780"
+                          checked={formData.birthdayMenu === '780'}
+                          onChange={(e) => handleChange('birthdayMenu', e.target.value)}
+                          className="mr-2 text-pink-600 focus:ring-pink-500"
+                        />
+                        <span className="text-sm">Meni 780 dinara</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          value="980"
+                          checked={formData.birthdayMenu === '980'}
+                          onChange={(e) => handleChange('birthdayMenu', e.target.value)}
+                          className="mr-2 text-pink-600 focus:ring-pink-500"
+                        />
+                        <span className="text-sm">Meni 980 dinara</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Prikaz ukupnog broja gostiju */}
+                  <div className="mt-3 text-sm text-gray-600 bg-white p-2 rounded">
+                    <strong>Ukupno gostiju: {parseInt(formData.adultsCount) + parseInt(formData.childrenCount)}</strong>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* STANDARDNA REZERVACIJA - Broj osoba */
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Broj osoba</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={formData.guests}
+                  onChange={(e) => handleChange('guests', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ko pravi rezervaciju</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Broj stola</label>
+              <input
+                type="number"
+                value={formData.tableNumber}
+                onChange={(e) => handleChange('tableNumber', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Opciono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ko zakazuje rezervaciju *</label>
               <input
                 type="text"
                 value={formData.createdBy}
                 onChange={(e) => handleChange('createdBy', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ime konobara/hostese"
+                placeholder="Ukucaj ime ko je zakazao rezervaciju"
               />
             </div>
 
