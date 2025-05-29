@@ -11,19 +11,16 @@ model Reservation {
   id            String   @id @default(cuid())
   name          String
   phone         String
-  date          String   // YYYY-MM-DD format
-  time          String   // HH:MM format
-  guests        Int      // ukupan broj gostiju
-  
-  // Rođendan specifična polja
-  adultsCount   Int?     // broj odraslih (samo za rođendane)
-  childrenCount Int?     // broj dece (samo za rođendane)
-  birthdayMenu  String?  // "780" ili "980" (samo za rođendane)
-  
+  date          String
+  time          String
+  guests        Int
+  adultsCount   Int?
+  childrenCount Int?
+  birthdayMenu  String?
   tableNumber   Int?
-  type          String   @default("standard") // "standard" ili "birthday"
+  type          String   @default("standard")
   notes         String?  @db.Text
-  createdBy     String   // ime osobe koja je zakazala
+  createdBy     String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
