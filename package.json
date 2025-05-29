@@ -13,18 +13,21 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "lucide-react": "^0.511.0",
+    "mysql2": "^3.14.1",
     "next": "15.3.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@prisma/client": "^5.22.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/node": "22.15.24",
+    "@types/react": "19.1.6",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "tailwindcss": "^4",
-    "prisma": "^5.22.0"
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4"
   }
 }
