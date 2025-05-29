@@ -4,7 +4,7 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 import ReservationCard from './ReservationCard';
 
-export default function WeekView({ getNext7Days, getReservationsForDate, onDeleteReservation, onUpdateReservation }) {
+export default function WeekView({ getNext7Days, getReservationsForDate, onDeleteReservation }) {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-6 text-gray-800">Narednih 7 dana</h2>
@@ -51,7 +51,6 @@ export default function WeekView({ getNext7Days, getReservationsForDate, onDelet
                       reservation={reservation} 
                       isCompact={true}
                       onDelete={onDeleteReservation}
-                      onUpdate={onUpdateReservation}
                     />
                   ))}
                 </div>
