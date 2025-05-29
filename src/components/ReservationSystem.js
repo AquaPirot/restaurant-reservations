@@ -10,6 +10,8 @@ import ReservationForm from './ReservationForm';
 export default function ReservationSystem() {
   const [currentView, setCurrentView] = useState('week');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingReservation, setEditingReservation] = useState(null);
   
   const {
     reservations,
@@ -31,12 +33,18 @@ export default function ReservationSystem() {
     }
   };
 
-  const handleUpdateReservation = async (id, reservationData) => {
+  const handleEditReservation = (reservation) => {
+    setEditingReservation(reservation);
+    setShowEditForm(true);
+  };
+
+  const handleUpdateReservation = async (reservationData) => {
     try {
-      await updateReservation(id, reservationData);
+      await updateReservation(editingReservation.id, reservationData);
+      setShowEditForm(false);
+      setEditingReservation(null);
     } catch (error) {
       alert('Greška pri ažuriranju rezervacije: ' + error.message);
-      throw error;
     }
   };
 
@@ -186,7 +194,7 @@ export default function ReservationSystem() {
             getNext7Days={getNext7Days}
             getReservationsForDate={getReservationsForDate}
             onDeleteReservation={handleDeleteReservation}
-            onUpdateReservation={handleUpdateReservation}
+            onEditReservation={handleEditReservation}
           />
         ) : (
           <CalendarView 
@@ -201,6 +209,20 @@ export default function ReservationSystem() {
           isOpen={showAddForm}
           onClose={() => setShowAddForm(false)}
           onSave={handleAddReservation}
+        />
+      )}
+
+      {/* Modal za izmenu rezervacije */}
+      {showEditForm && editingReservation && (
+        <ReservationForm
+          isOpen={showEditForm}
+          onClose={() => {
+            setShowEditForm(false);
+            setEditingReservation(null);
+          }}
+          onSave={handleUpdateReservation}
+          editMode={true}
+          initialData={editingReservation}
         />
       )}
 

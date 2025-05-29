@@ -3,11 +3,15 @@
 import React from 'react';
 import { Clock, Users, Phone, PartyPopper, Edit, Trash2, User, Baby } from 'lucide-react';
 
-export default function ReservationCard({ reservation, isCompact = false, onDelete }) {
+export default function ReservationCard({ reservation, isCompact = false, onDelete, onEdit }) {
   const handleDelete = () => {
     if (confirm('Da li ste sigurni da želite da obrišete ovu rezervaciju?')) {
       onDelete(reservation.id);
     }
+  };
+
+  const handleEdit = () => {
+    onEdit(reservation);
   };
 
   return (
@@ -100,11 +104,11 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
         
         <div className="flex space-x-1 ml-4">
           <button 
-            className="p-1 hover:bg-gray-100 rounded opacity-50 cursor-not-allowed" 
-            title="Edit funkcija - uskoro"
-            disabled
+            onClick={handleEdit}
+            className="p-1 hover:bg-blue-50 rounded transition-colors"
+            title="Izmeni rezervaciju"
           >
-            <Edit className="w-4 h-4 text-gray-400" />
+            <Edit className="w-4 h-4 text-blue-500 hover:text-blue-600" />
           </button>
           <button 
             onClick={handleDelete}
