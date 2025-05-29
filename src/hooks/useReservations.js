@@ -55,7 +55,7 @@ export function useReservations() {
     }
   };
 
-  // NOVA - Ažuriraj postojeću rezervaciju
+  // Ažuriraj postojeću rezervaciju
   const updateReservation = async (id, reservationData) => {
     try {
       const response = await fetch(`/api/reservations?id=${id}`, {
