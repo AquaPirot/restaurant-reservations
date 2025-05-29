@@ -1,6 +1,172 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Calendar, Clock } from 'lucide-react';
+
+// Custom Date Input - uvek DD/MM/YYYY format
+function CustomDateInput({ value, onChange, className, required = false }) {
+  const [displayValue, setDisplayValue] = useState('');
+
+  useEffect(() => {
+    if (value) {
+      // Konvertuj YYYY-MM-DD u DD/MM/YYYY za prikaz
+      const [year, month, day] = value.split('-');
+      setDisplayValue(`${day}/${month}/${year}`);
+    }
+  }, [value]);
+
+  const handleChange = (e) => {
+    let input = e.target.value.replace(/\D/g, ''); // samo brojevi
+    let formatted = '';
+    
+    // Formatiranje DD/MM/YYYY
+    if (input.length >= 1) {
+      formatted = input.substring(0, 2);
+    }
+    if (input.length >= 3) {
+      formatted += '/' + input.substring(2, 4);
+    }
+    if (input.length >= 5) {
+      formatted += '/' + input.substring(4, 8);
+    }
+    
+    setDisplayValue(formatted);
+    
+    // Ako je kompletan datum (DD/MM/YYYY), konvertuj u YYYY-MM-DD
+    if (formatted.length === 10) {
+      const [day, month, year] = formatted.split('/');
+      if (day && month && year && 
+          parseInt(day) >= 1 && parseInt(day) <= 31 &&
+          parseInt(month) >= 1 && parseInt(month) <= 12 &&
+          year.length === 4) {
+        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        onChange({ target: { value: isoDate } });
+      }
+    }
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        className={className}
+        placeholder="DD/MM/YYYY"
+        maxLength={10}
+        required={required}
+      />
+      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    </div>
+  );
+}
+
+// Custom Time Input - uvek 24h format
+function CustomTimeInput({ value, onChange, className, required = false }) {
+  const [displayValue, setDisplayValue] = useState(value || '');
+
+  useEffect(() => {
+    setDisplayValue(value || '');
+  }, [value]);
+
+  const handleChange = (e) => {
+    let input = e.target.value.replace(/\D/g, ''); // samo brojevi
+    let formatted = '';
+    
+    if (input.length >= 1) {
+      let hours = input.substring(0, 2);
+      // Ograniči sate na 0-23
+      if (parseInt(hours) > 23) hours = '23';
+      formatted = hours.padStart(2, '0');
+    }
+    if (input.length >= 3) {
+      let minutes = input.substring(2, 4);
+      // Ograniči minute na 0-59
+      if (parseInt(minutes) > 59) minutes = '59';
+      formatted += ':' + minutes.padStart(2, '0');
+    }
+    
+    setDisplayValue(formatted);
+    
+    // Ako je kompletno vreme (HH:MM), pošalji dalje
+    if (formatted.length === 5) {
+      onChange({ target: { value: formatted } });
+    }
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        className={className}
+        placeholder="HH:MM"
+        maxLength={5}
+        required={required}
+      />
+      <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+    </div>
+  );
+}
+
+// Quick select dugmićи za vreme
+function TimeQuickSelect({ onSelect }) {
+  const commonTimes = [
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', 
+    '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-1 mt-2">
+      {commonTimes.map(time => (
+        <button
+          key={time}
+          type="button"
+          onClick={() => onSelect(time)}
+          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+        >
+          {time}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Quick select dugmići za datum
+function DateQuickSelect({ onSelect }) {
+  const getQuickDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      dates.push({
+        label: i === 0 ? 'Danas' : i === 1 ? 'Sutra' : 
+                date.toLocaleDateString('sr-RS', { weekday: 'short', day: 'numeric', month: 'numeric' }),
+        value: date.toISOString().split('T')[0]
+      });
+    }
+    
+    return dates;
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1 mt-2">
+      {getQuickDates().map(date => (
+        <button
+          key={date.value}
+          type="button"
+          onClick={() => onSelect(date.value)}
+          className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+        >
+          {date.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function ReservationForm({ 
   isOpen, 
@@ -18,12 +184,15 @@ export default function ReservationForm({
     // Rođendan specifična polja
     adultsCount: 1,
     childrenCount: 0,
-    birthdayMenu: '780', // 780 ili 980 dinara
+    birthdayMenu: '780',
     tableNumber: '',
     type: 'standard',
     notes: '',
     createdBy: ''
   });
+
+  const [showTimeQuickSelect, setShowTimeQuickSelect] = useState(false);
+  const [showDateQuickSelect, setShowDateQuickSelect] = useState(false);
 
   // Postavi početne vrednosti ako je edit mode
   useEffect(() => {
@@ -45,21 +214,6 @@ export default function ReservationForm({
     }
   }, [editMode, initialData]);
 
-  // Funkcija za formatiranje datuma iz YYYY-MM-DD u DD/MM/YYYY
-  const formatDateForDisplay = (dateString) => {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
-    return `${day}/${month}/${year}`;
-  };
-
-  // Funkcija za konvertovanje datuma iz DD/MM/YYYY u YYYY-MM-DD
-  const formatDateForSubmit = (dateString) => {
-    if (!dateString) return '';
-    if (dateString.includes('-')) return dateString; // već u ispravnom formatu
-    const [day, month, year] = dateString.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  };
-
   const handleSubmit = () => {
     if (!formData.name || !formData.phone || !formData.date || !formData.time || !formData.createdBy) {
       alert('Molimo unesite sva obavezna polja!');
@@ -79,7 +233,6 @@ export default function ReservationForm({
       childrenCount: formData.type === 'birthday' ? parseInt(formData.childrenCount) : null,
       birthdayMenu: formData.type === 'birthday' ? formData.birthdayMenu : null,
       tableNumber: parseInt(formData.tableNumber) || null,
-      date: formatDateForSubmit(formData.date), // konvertuj u YYYY-MM-DD za bazu
       createdAt: editMode ? initialData.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -138,6 +291,7 @@ export default function ReservationForm({
                 onChange={(e) => handleChange('name', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Unesite ime i prezime"
+                required
               />
             </div>
 
@@ -149,35 +303,63 @@ export default function ReservationForm({
                 onChange={(e) => handleChange('phone', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="062/123-456"
+                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Datum *</label>
-                <input
-                  type="date"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Datum * 
+                  <button
+                    type="button"
+                    onClick={() => setShowDateQuickSelect(!showDateQuickSelect)}
+                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    (brzo)
+                  </button>
+                </label>
+                <CustomDateInput
                   value={formData.date}
                   onChange={(e) => handleChange('date', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
                 />
-                {/* Prikaz datuma u srpskom formatu */}
-                {formData.date && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    {formatDateForDisplay(formData.date)}
-                  </div>
+                {showDateQuickSelect && (
+                  <DateQuickSelect 
+                    onSelect={(date) => {
+                      handleChange('date', date);
+                      setShowDateQuickSelect(false);
+                    }}
+                  />
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Vreme *</label>
-                <input
-                  type="time"
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vreme *
+                  <button
+                    type="button"
+                    onClick={() => setShowTimeQuickSelect(!showTimeQuickSelect)}
+                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    (brzo)
+                  </button>
+                </label>
+                <CustomTimeInput
                   value={formData.time}
                   onChange={(e) => handleChange('time', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  step="300"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
                 />
+                {showTimeQuickSelect && (
+                  <TimeQuickSelect 
+                    onSelect={(time) => {
+                      handleChange('time', time);
+                      setShowTimeQuickSelect(false);
+                    }}
+                  />
+                )}
               </div>
             </div>
 
@@ -301,6 +483,7 @@ export default function ReservationForm({
                 onChange={(e) => handleChange('createdBy', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Ukucaj ime ko je zakazao rezervaciju"
+                required
               />
             </div>
 
