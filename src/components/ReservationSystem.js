@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Calendar, Plus, RefreshCw } from 'lucide-react';
-import { useReservations } from '@/hooks/useReservations';
+import { useReservations } from '../hooks/useReservations';
 import CalendarView from './CalendarView';
 import WeekView from './WeekView';
 import ReservationForm from './ReservationForm';
