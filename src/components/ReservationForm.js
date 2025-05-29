@@ -1,8 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function ReservationForm({ isOpen, onClose, onSave }) {
+export default function ReservationForm({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  editMode = false, 
+  initialData = null 
+}) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -19,6 +25,26 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
     createdBy: ''
   });
 
+  // Postavi početne vrednosti ako je edit mode
+  useEffect(() => {
+    if (editMode && initialData) {
+      setFormData({
+        name: initialData.name || '',
+        phone: initialData.phone || '',
+        date: initialData.date || '',
+        time: initialData.time || '',
+        guests: initialData.guests || 1,
+        adultsCount: initialData.adultsCount || 1,
+        childrenCount: initialData.childrenCount || 0,
+        birthdayMenu: initialData.birthdayMenu || '780',
+        tableNumber: initialData.tableNumber?.toString() || '',
+        type: initialData.type || 'standard',
+        notes: initialData.notes || '',
+        createdBy: initialData.createdBy || ''
+      });
+    }
+  }, [editMode, initialData]);
+
   const handleSubmit = () => {
     if (!formData.name || !formData.phone || !formData.date || !formData.time || !formData.createdBy) {
       alert('Molimo unesite sva obavezna polja!');
@@ -32,32 +58,35 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
 
     const reservation = {
       ...formData,
-      id: Date.now(),
+      id: editMode ? initialData.id : Date.now(),
       guests: totalGuests,
       adultsCount: formData.type === 'birthday' ? parseInt(formData.adultsCount) : null,
       childrenCount: formData.type === 'birthday' ? parseInt(formData.childrenCount) : null,
       birthdayMenu: formData.type === 'birthday' ? formData.birthdayMenu : null,
       tableNumber: parseInt(formData.tableNumber) || null,
-      createdAt: new Date().toISOString()
+      createdAt: editMode ? initialData.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     onSave(reservation);
     
-    // Reset form
-    setFormData({
-      name: '',
-      phone: '',
-      date: '',
-      time: '',
-      guests: 1,
-      adultsCount: 1,
-      childrenCount: 0,
-      birthdayMenu: '780',
-      tableNumber: '',
-      type: 'standard',
-      notes: '',
-      createdBy: ''
-    });
+    // Reset form samo ako nije edit mode
+    if (!editMode) {
+      setFormData({
+        name: '',
+        phone: '',
+        date: '',
+        time: '',
+        guests: 1,
+        adultsCount: 1,
+        childrenCount: 0,
+        birthdayMenu: '780',
+        tableNumber: '',
+        type: 'standard',
+        notes: '',
+        createdBy: ''
+      });
+    }
     
     onClose();
   };
@@ -75,7 +104,9 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
         <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Nova rezervacija</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editMode ? 'Izmeni rezervaciju' : 'Nova rezervacija'}
+          </h3>
           
           <div className="space-y-4">
             <div>
@@ -263,7 +294,7 @@ export default function ReservationForm({ isOpen, onClose, onSave }) {
                 onClick={handleSubmit}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                Sačuvaj
+                {editMode ? 'Sačuvaj izmene' : 'Sačuvaj'}
               </button>
             </div>
           </div>

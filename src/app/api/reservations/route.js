@@ -41,6 +41,9 @@ export async function POST(request) {
         date: data.date,
         time: data.time,
         guests: parseInt(data.guests) || 1,
+        adultsCount: data.adultsCount ? parseInt(data.adultsCount) : null,
+        childrenCount: data.childrenCount ? parseInt(data.childrenCount) : null,
+        birthdayMenu: data.birthdayMenu || null,
         tableNumber: data.tableNumber ? parseInt(data.tableNumber) : null,
         type: data.type || 'standard',
         notes: data.notes || null,
@@ -53,6 +56,64 @@ export async function POST(request) {
     console.error('Greška pri kreiranju rezervacije:', error)
     return NextResponse.json(
       { error: 'Greška pri kreiranju rezervacije' },
+      { status: 500 }
+    )
+  }
+}
+
+// PUT - Ažuriraj postojeću rezervaciju
+export async function PUT(request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    const data = await request.json()
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID rezervacije je obavezan' },
+        { status: 400 }
+      )
+    }
+
+    // Validacija
+    if (!data.name || !data.phone || !data.date || !data.time) {
+      return NextResponse.json(
+        { error: 'Nedostaju obavezna polja' },
+        { status: 400 }
+      )
+    }
+
+    const updatedReservation = await prisma.reservation.update({
+      where: { id },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        date: data.date,
+        time: data.time,
+        guests: parseInt(data.guests) || 1,
+        adultsCount: data.adultsCount ? parseInt(data.adultsCount) : null,
+        childrenCount: data.childrenCount ? parseInt(data.childrenCount) : null,
+        birthdayMenu: data.birthdayMenu || null,
+        tableNumber: data.tableNumber ? parseInt(data.tableNumber) : null,
+        type: data.type || 'standard',
+        notes: data.notes || null,
+        createdBy: data.createdBy || 'Konobar'
+      }
+    })
+
+    return NextResponse.json(updatedReservation)
+  } catch (error) {
+    console.error('Greška pri ažuriranju rezervacije:', error)
+    
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Rezervacija nije pronađena' },
+        { status: 404 }
+      )
+    }
+    
+    return NextResponse.json(
+      { error: 'Greška pri ažuriranju rezervacije' },
       { status: 500 }
     )
   }
@@ -78,6 +139,14 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Greška pri brisanju rezervacije:', error)
+    
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'Rezervacija nije pronađena' },
+        { status: 404 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Greška pri brisanju rezervacije' },
       { status: 500 }

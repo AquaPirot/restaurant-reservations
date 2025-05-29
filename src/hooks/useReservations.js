@@ -55,6 +55,32 @@ export function useReservations() {
     }
   };
 
+  // NOVA - Ažuriraj postojeću rezervaciju
+  const updateReservation = async (id, reservationData) => {
+    try {
+      const response = await fetch(`/api/reservations?id=${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reservationData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Greška pri ažuriranju rezervacije');
+      }
+
+      const updatedReservation = await response.json();
+      setReservations(prev => 
+        prev.map(res => res.id === id ? updatedReservation : res)
+      );
+      return updatedReservation;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   // Obriši rezervaciju
   const deleteReservation = async (id) => {
     try {
@@ -99,6 +125,7 @@ export function useReservations() {
     loading,
     error,
     addReservation,
+    updateReservation,
     deleteReservation,
     getReservationsForDate,
     getStats,
