@@ -16,6 +16,7 @@ export default function ReservationSystem() {
     loading,
     error,
     addReservation,
+    updateReservation,
     deleteReservation,
     getReservationsForDate,
     refetch
@@ -27,6 +28,15 @@ export default function ReservationSystem() {
       setShowAddForm(false);
     } catch (error) {
       alert('Greška pri dodavanju rezervacije: ' + error.message);
+    }
+  };
+
+  const handleUpdateReservation = async (id, reservationData) => {
+    try {
+      await updateReservation(id, reservationData);
+    } catch (error) {
+      alert('Greška pri ažuriranju rezervacije: ' + error.message);
+      throw error;
     }
   };
 
@@ -176,6 +186,7 @@ export default function ReservationSystem() {
             getNext7Days={getNext7Days}
             getReservationsForDate={getReservationsForDate}
             onDeleteReservation={handleDeleteReservation}
+            onUpdateReservation={handleUpdateReservation}
           />
         ) : (
           <CalendarView 
