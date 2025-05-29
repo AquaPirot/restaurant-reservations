@@ -34,6 +34,37 @@ export default function CalendarView({ getReservationsForDate }) {
     setCurrentMonth(newDate);
   };
 
+  // Formatiranje vremena u 24h format (HH:MM)
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    
+    // Ako je već u HH:MM formatu, vrati kao je
+    if (timeString.match(/^\d{2}:\d{2}$/)) {
+      return timeString;
+    }
+    
+    // Ako je u HH:MM:SS formatu, uzmi samo HH:MM
+    if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      return timeString.substring(0, 5);
+    }
+    
+    return timeString;
+  };
+
+  // Formatiranje datuma u DD/MM/YYYY format
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   const today = new Date();
   const days = getDaysInMonth(currentMonth);
   const monthName = currentMonth.toLocaleDateString('sr-RS', { month: 'long', year: 'numeric' });
@@ -130,7 +161,7 @@ export default function CalendarView({ getReservationsForDate }) {
                             : 'bg-green-100 text-green-800 border-l-2 border-green-400'
                         }`}
                       >
-                        <div className="font-semibold">{reservation.time}</div>
+                        <div className="font-semibold">{formatTime(reservation.time)}</div>
                         <div className="truncate">{reservation.name.split(' ')[0]}</div>
                       </div>
                     ))}
@@ -179,7 +210,7 @@ export default function CalendarView({ getReservationsForDate }) {
                   }`}>
                     <div className="flex items-center space-x-3">
                       <div className="text-sm">
-                        <span className="font-medium">{reservation.time}</span>
+                        <span className="font-medium">{formatTime(reservation.time)}</span>
                         <span className="mx-2 text-gray-400">•</span>
                         <span>{reservation.name}</span>
                         {reservation.type === 'birthday' && (

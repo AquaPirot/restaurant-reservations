@@ -45,6 +45,21 @@ export default function ReservationForm({
     }
   }, [editMode, initialData]);
 
+  // Funkcija za formatiranje datuma iz YYYY-MM-DD u DD/MM/YYYY
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  // Funkcija za konvertovanje datuma iz DD/MM/YYYY u YYYY-MM-DD
+  const formatDateForSubmit = (dateString) => {
+    if (!dateString) return '';
+    if (dateString.includes('-')) return dateString; // već u ispravnom formatu
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
   const handleSubmit = () => {
     if (!formData.name || !formData.phone || !formData.date || !formData.time || !formData.createdBy) {
       alert('Molimo unesite sva obavezna polja!');
@@ -64,6 +79,7 @@ export default function ReservationForm({
       childrenCount: formData.type === 'birthday' ? parseInt(formData.childrenCount) : null,
       birthdayMenu: formData.type === 'birthday' ? formData.birthdayMenu : null,
       tableNumber: parseInt(formData.tableNumber) || null,
+      date: formatDateForSubmit(formData.date), // konvertuj u YYYY-MM-DD za bazu
       createdAt: editMode ? initialData.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -96,6 +112,11 @@ export default function ReservationForm({
       ...prev,
       [field]: value
     }));
+  };
+
+  // Funkcija za select all u number input polju
+  const handleNumberInputFocus = (e) => {
+    e.target.select();
   };
 
   if (!isOpen) return null;
@@ -140,6 +161,12 @@ export default function ReservationForm({
                   onChange={(e) => handleChange('date', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                {/* Prikaz datuma u srpskom formatu */}
+                {formData.date && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    {formatDateForDisplay(formData.date)}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -149,6 +176,7 @@ export default function ReservationForm({
                   value={formData.time}
                   onChange={(e) => handleChange('time', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  step="300"
                 />
               </div>
             </div>
@@ -183,6 +211,7 @@ export default function ReservationForm({
                         max="20"
                         value={formData.adultsCount}
                         onChange={(e) => handleChange('adultsCount', e.target.value)}
+                        onFocus={handleNumberInputFocus}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
@@ -195,6 +224,7 @@ export default function ReservationForm({
                         max="20"
                         value={formData.childrenCount}
                         onChange={(e) => handleChange('childrenCount', e.target.value)}
+                        onFocus={handleNumberInputFocus}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
@@ -243,6 +273,7 @@ export default function ReservationForm({
                   max="20"
                   value={formData.guests}
                   onChange={(e) => handleChange('guests', e.target.value)}
+                  onFocus={handleNumberInputFocus}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -252,8 +283,11 @@ export default function ReservationForm({
               <label className="block text-sm font-medium text-gray-700 mb-1">Broj stola</label>
               <input
                 type="number"
+                min="1"
+                max="100"
                 value={formData.tableNumber}
                 onChange={(e) => handleChange('tableNumber', e.target.value)}
+                onFocus={handleNumberInputFocus}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Opciono"
               />
@@ -276,7 +310,7 @@ export default function ReservationForm({
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Dodatne informacije..."
               />
             </div>

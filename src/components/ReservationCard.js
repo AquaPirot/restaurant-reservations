@@ -14,6 +14,37 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
     onEdit(reservation);
   };
 
+  // Formatiranje datuma u DD/MM/YYYY format
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Formatiranje vremena u 24h format (HH:MM)
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    
+    // Ako je već u HH:MM formatu, vrati kao je
+    if (timeString.match(/^\d{2}:\d{2}$/)) {
+      return timeString;
+    }
+    
+    // Ako je u HH:MM:SS formatu, uzmi samo HH:MM
+    if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+      return timeString.substring(0, 5);
+    }
+    
+    return timeString;
+  };
+
   return (
     <div className={`bg-white rounded-lg shadow-sm border-l-4 ${
       reservation.type === 'birthday' ? 'border-pink-400' : 'border-blue-400'
@@ -37,7 +68,7 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
               <Clock className="w-4 h-4" />
-              <span>{reservation.time}</span>
+              <span className="font-medium">{formatTime(reservation.time)}</span>
             </div>
             
             {/* POBOLJŠAN prikaz gostiju za rođendane */}
@@ -98,7 +129,7 @@ export default function ReservationCard({ reservation, isCompact = false, onDele
           <div className="text-xs text-gray-400 mt-2 flex items-center space-x-2">
             <span>Zakazao: {reservation.createdBy}</span>
             <span>•</span>
-            <span>{new Date(reservation.createdAt).toLocaleDateString('sr-RS')}</span>
+            <span>{formatDate(reservation.createdAt)}</span>
           </div>
         </div>
         
