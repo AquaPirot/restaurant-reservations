@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
+import DatePickerModal from './DatePickerModal';
 
 // Custom Date Input - uvek DD/MM/YYYY format
-function CustomDateInput({ value, onChange, className, required = false }) {
+function CustomDateInput({ value, onChange, className, required = false, onCalendarClick }) {
   const [displayValue, setDisplayValue] = useState('');
 
   useEffect(() => {
@@ -56,7 +57,14 @@ function CustomDateInput({ value, onChange, className, required = false }) {
         maxLength={10}
         required={required}
       />
-      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      <button
+        type="button"
+        onClick={onCalendarClick}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+        title="Izaberi datum iz kalendara"
+      >
+        <Calendar className="w-4 h-4 text-gray-400 hover:text-blue-600" />
+      </button>
     </div>
   );
 }
@@ -193,6 +201,7 @@ export default function ReservationForm({
 
   const [showTimeQuickSelect, setShowTimeQuickSelect] = useState(false);
   const [showDateQuickSelect, setShowDateQuickSelect] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Postavi početne vrednosti ako je edit mode
   useEffect(() => {
@@ -275,248 +284,264 @@ export default function ReservationForm({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {editMode ? 'Izmeni rezervaciju' : 'Nova rezervacija'}
-          </h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ime i prezime *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Unesite ime i prezime"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Telefon *</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="062/123-456"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">
+              {editMode ? 'Izmeni rezervaciju' : 'Nova rezervacija'}
+            </h3>
+            
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Datum * 
-                  <button
-                    type="button"
-                    onClick={() => setShowDateQuickSelect(!showDateQuickSelect)}
-                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    (brzo)
-                  </button>
+                  Ime i prezime <span className="text-red-500">*</span>
                 </label>
-                <CustomDateInput
-                  value={formData.date}
-                  onChange={(e) => handleChange('date', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Unesite ime i prezime"
                   required
                 />
-                {showDateQuickSelect && (
-                  <DateQuickSelect 
-                    onSelect={(date) => {
-                      handleChange('date', date);
-                      setShowDateQuickSelect(false);
-                    }}
-                  />
-                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vreme *
-                  <button
-                    type="button"
-                    onClick={() => setShowTimeQuickSelect(!showTimeQuickSelect)}
-                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    (brzo)
-                  </button>
+                  Telefon <span className="text-red-500">*</span>
                 </label>
-                <CustomTimeInput
-                  value={formData.time}
-                  onChange={(e) => handleChange('time', e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="062/123-456"
                   required
                 />
-                {showTimeQuickSelect && (
-                  <TimeQuickSelect 
-                    onSelect={(time) => {
-                      handleChange('time', time);
-                      setShowTimeQuickSelect(false);
-                    }}
-                  />
-                )}
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tip rezervacije</label>
-              <select
-                value={formData.type}
-                onChange={(e) => handleChange('type', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="standard">Standardna</option>
-                <option value="birthday">Rođendan</option>
-              </select>
-            </div>
-
-            {/* ROĐENDAN SPECIFIČNA POLJA */}
-            {formData.type === 'birthday' ? (
-              <>
-                {/* Broj odraslih i dece */}
-                <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
-                  <h4 className="text-sm font-semibold text-pink-800 mb-3 flex items-center">
-                    🎂 Rođendanska rezervacija
-                  </h4>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Broj odraslih</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={formData.adultsCount}
-                        onChange={(e) => handleChange('adultsCount', e.target.value)}
-                        onFocus={handleNumberInputFocus}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Broj dece</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="20"
-                        value={formData.childrenCount}
-                        onChange={(e) => handleChange('childrenCount', e.target.value)}
-                        onFocus={handleNumberInputFocus}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Meni opcije */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Rođendanski meni</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="780"
-                          checked={formData.birthdayMenu === '780'}
-                          onChange={(e) => handleChange('birthdayMenu', e.target.value)}
-                          className="mr-2 text-pink-600 focus:ring-pink-500"
-                        />
-                        <span className="text-sm">Meni 780 dinara</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="980"
-                          checked={formData.birthdayMenu === '980'}
-                          onChange={(e) => handleChange('birthdayMenu', e.target.value)}
-                          className="mr-2 text-pink-600 focus:ring-pink-500"
-                        />
-                        <span className="text-sm">Meni 980 dinara</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Prikaz ukupnog broja gostiju */}
-                  <div className="mt-3 text-sm text-gray-600 bg-white p-2 rounded">
-                    <strong>Ukupno gostiju: {parseInt(formData.adultsCount) + parseInt(formData.childrenCount)}</strong>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Datum <span className="text-red-500">*</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowDateQuickSelect(!showDateQuickSelect)}
+                      className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      (brzo)
+                    </button>
+                  </label>
+                  <CustomDateInput
+                    value={formData.date}
+                    onChange={(e) => handleChange('date', e.target.value)}
+                    onCalendarClick={() => setShowDatePicker(true)}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                  {showDateQuickSelect && (
+                    <DateQuickSelect 
+                      onSelect={(date) => {
+                        handleChange('date', date);
+                        setShowDateQuickSelect(false);
+                      }}
+                    />
+                  )}
                 </div>
-              </>
-            ) : (
-              /* STANDARDNA REZERVACIJA - Broj osoba */
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vreme <span className="text-red-500">*</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowTimeQuickSelect(!showTimeQuickSelect)}
+                      className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      (brzo)
+                    </button>
+                  </label>
+                  <CustomTimeInput
+                    value={formData.time}
+                    onChange={(e) => handleChange('time', e.target.value)}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                  {showTimeQuickSelect && (
+                    <TimeQuickSelect 
+                      onSelect={(time) => {
+                        handleChange('time', time);
+                        setShowTimeQuickSelect(false);
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Broj osoba</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tip rezervacije</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => handleChange('type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="standard">Standardna</option>
+                  <option value="birthday">Rođendan</option>
+                </select>
+              </div>
+
+              {/* ROĐENDAN SPECIFIČNA POLJA */}
+              {formData.type === 'birthday' ? (
+                <>
+                  {/* Broj odraslih i dece */}
+                  <div className="bg-pink-50 p-4 rounded-lg border border-pink-200">
+                    <h4 className="text-sm font-semibold text-pink-800 mb-3 flex items-center">
+                      🎂 Rođendanska rezervacija
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Broj odraslih</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={formData.adultsCount}
+                          onChange={(e) => handleChange('adultsCount', e.target.value)}
+                          onFocus={handleNumberInputFocus}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Broj dece</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={formData.childrenCount}
+                          onChange={(e) => handleChange('childrenCount', e.target.value)}
+                          onFocus={handleNumberInputFocus}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Meni opcije */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Rođendanski meni</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="780"
+                            checked={formData.birthdayMenu === '780'}
+                            onChange={(e) => handleChange('birthdayMenu', e.target.value)}
+                            className="mr-2 text-pink-600 focus:ring-pink-500"
+                          />
+                          <span className="text-sm">Meni 780 dinara</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            value="980"
+                            checked={formData.birthdayMenu === '980'}
+                            onChange={(e) => handleChange('birthdayMenu', e.target.value)}
+                            className="mr-2 text-pink-600 focus:ring-pink-500"
+                          />
+                          <span className="text-sm">Meni 980 dinara</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Prikaz ukupnog broja gostiju */}
+                    <div className="mt-3 text-sm text-gray-600 bg-white p-2 rounded">
+                      <strong>Ukupno gostiju: {parseInt(formData.adultsCount) + parseInt(formData.childrenCount)}</strong>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* STANDARDNA REZERVACIJA - Broj osoba */
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Broj osoba</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={formData.guests}
+                    onChange={(e) => handleChange('guests', e.target.value)}
+                    onFocus={handleNumberInputFocus}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Broj stola</label>
                 <input
                   type="number"
                   min="1"
-                  max="20"
-                  value={formData.guests}
-                  onChange={(e) => handleChange('guests', e.target.value)}
+                  max="100"
+                  value={formData.tableNumber}
+                  onChange={(e) => handleChange('tableNumber', e.target.value)}
                   onFocus={handleNumberInputFocus}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Opciono"
                 />
               </div>
-            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Broj stola</label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={formData.tableNumber}
-                onChange={(e) => handleChange('tableNumber', e.target.value)}
-                onFocus={handleNumberInputFocus}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Opciono"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ko zakazuje rezervaciju <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.createdBy}
+                  onChange={(e) => handleChange('createdBy', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ukucaj ime ko je zakazao rezervaciju"
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ko zakazuje rezervaciju *</label>
-              <input
-                type="text"
-                value={formData.createdBy}
-                onChange={(e) => handleChange('createdBy', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Ukucaj ime ko je zakazao rezervaciju"
-                required
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Napomene</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Dodatne informacije..."
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Napomene</label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => handleChange('notes', e.target.value)}
-                rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Dodatne informacije..."
-              />
-            </div>
-
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Odustani
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                {editMode ? 'Sačuvaj izmene' : 'Sačuvaj'}
-              </button>
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Odustani
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  {editMode ? 'Sačuvaj izmene' : 'Sačuvaj'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Date Picker Modal */}
+      <DatePickerModal
+        isOpen={showDatePicker}
+        onClose={() => setShowDatePicker(false)}
+        onSelect={(date) => handleChange('date', date)}
+      />
+    </>
   );
 }

@@ -98,20 +98,28 @@ export default function ReservationSystem() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - MOBILE FRIENDLY */}
+      {/* Header - MOBILE FRIENDLY sa AQUA CAFFE LOGOM */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Mobile Layout - Stack vertically */}
           <div className="block md:hidden">
-            {/* Title and Stats */}
-            <div className="mb-4">
-              <h1 className="text-xl font-bold text-gray-900 flex items-center space-x-2 mb-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                <span>Rezervacije</span>
-              </h1>
-              <p className="text-sm text-gray-600">
-                Ukupno: {reservations.length} | Danas: {getReservationsForDate(new Date()).length}
-              </p>
+            {/* Logo i title */}
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-lg overflow-hidden shadow-md bg-white border border-gray-200">
+                <img 
+                  src="/logo.png" 
+                  alt="Aqua Caffe&Restaurant Logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <span>Rezervacije</span>
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Ukupno: {reservations.length} | Danas: {getReservationsForDate(new Date()).length}
+                </p>
+              </div>
             </div>
             
             {/* Main Actions Row */}
@@ -147,15 +155,26 @@ export default function ReservationSystem() {
 
           {/* Desktop Layout */}
           <div className="hidden md:flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-                <Calendar className="w-6 h-6 text-blue-600" />
-                <span>Rezervacije - Restoran</span>
-              </h1>
-              <p className="text-gray-600">
-                Ukupno: {reservations.length} rezervacija | 
-                Danas: {getReservationsForDate(new Date()).length}
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Logo */}
+              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg bg-white border border-gray-200">
+                <img 
+                  src="/logo.png" 
+                  alt="Aqua Caffe&Restaurant Logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Calendar className="w-6 h-6 text-blue-600" />
+                  <span>Rezervacije - Aqua Caffe&Restaurant</span>
+                </h1>
+                <p className="text-gray-600">
+                  Ukupno: {reservations.length} rezervacija | 
+                  Danas: {getReservationsForDate(new Date()).length}
+                </p>
+              </div>
             </div>
             
             <div className="flex space-x-2">
@@ -199,6 +218,8 @@ export default function ReservationSystem() {
         ) : (
           <CalendarView 
             getReservationsForDate={getReservationsForDate}
+            onDeleteReservation={handleDeleteReservation}
+            onEditReservation={handleEditReservation}
           />
         )}
       </div>
