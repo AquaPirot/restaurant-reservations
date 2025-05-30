@@ -14,7 +14,11 @@ export default function CalendarView({ getReservationsForDate, onDeleteReservati
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    
+    // POPRAVKA: Ponedeljak kao prvi dan (0=Nedelja, 1=Ponedeljak, ...)
+    // Konvertujemo da Ponedeljak bude 0, Utorak 1, itd.
+    let startingDayOfWeek = firstDay.getDay() - 1;
+    if (startingDayOfWeek < 0) startingDayOfWeek = 6; // Nedelja postaje 6
     
     const days = [];
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -79,9 +83,9 @@ export default function CalendarView({ getReservationsForDate, onDeleteReservati
       </div>
 
       <div className="p-3 md:p-6">
-        {/* Days of Week Header */}
+        {/* Days of Week Header - POPRAVKA: Pon-Ned umesto Ned-Sub */}
         <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2 md:mb-4">
-          {['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'].map(day => (
+          {['Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub', 'Ned'].map(day => (
             <div key={day} className="text-center text-xs md:text-sm font-medium text-gray-500 py-1 md:py-2">
               {day}
             </div>

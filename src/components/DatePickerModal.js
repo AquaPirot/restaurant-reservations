@@ -14,7 +14,10 @@ export default function DatePickerModal({ isOpen, onClose, onSelect }) {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    
+    // POPRAVKA: Ponedeljak kao prvi dan
+    let startingDayOfWeek = firstDay.getDay() - 1;
+    if (startingDayOfWeek < 0) startingDayOfWeek = 6; // Nedelja postaje 6
     
     const days = [];
     for (let i = 0; i < startingDayOfWeek; i++) {
@@ -34,7 +37,12 @@ export default function DatePickerModal({ isOpen, onClose, onSelect }) {
   };
 
   const handleDateSelect = (date) => {
-    const isoDate = date.toISOString().split('T')[0];
+    // POPRAVKA: Generiši datum u lokalnoj timezone bez UTC konverzije
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const isoDate = `${year}-${month}-${day}`;
+    
     onSelect(isoDate);
     onClose();
   };
@@ -72,9 +80,9 @@ export default function DatePickerModal({ isOpen, onClose, onSelect }) {
             </div>
           </div>
 
-          {/* Days of Week */}
+          {/* Days of Week - POPRAVKA: Pon-Ned */}
           <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Ned', 'Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub'].map(day => (
+            {['Pon', 'Uto', 'Sre', 'Čet', 'Pet', 'Sub', 'Ned'].map(day => (
               <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
                 {day}
               </div>

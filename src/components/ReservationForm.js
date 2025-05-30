@@ -69,36 +69,88 @@ function CustomDateInput({ value, onChange, className, required = false, onCalen
   );
 }
 
-// Custom Time Input - uvek 24h format
+// POBOLJŠAN Custom Time Input - lakše kucanje
 function CustomTimeInput({ value, onChange, className, required = false }) {
   const [displayValue, setDisplayValue] = useState(value || '');
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     setDisplayValue(value || '');
   }, [value]);
 
+  const handleFocus = () => {
+    setIsEditing(true);
+    // Selektuj sve da korisnik može odmah da kuca
+    setTimeout(() => {
+      const input = document.activeElement;
+      if (input) input.select();
+    }, 0);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    // Validraj i formatiraj vreme pri izlasku iz polja
+    if (displayValue) {
+      const formatted = formatTimeInput(displayValue);
+      setDisplayValue(formatted);
+      onChange({ target: { value: formatted } });
+    }
+  };
+
+  const formatTimeInput = (input) => {
+    // Ukloni sve što nije broj
+    const numbers = input.replace(/\D/g, '');
+    
+    if (numbers.length === 0) return '';
+    
+    if (numbers.length <= 2) {
+      // Samo sati
+      const hours = Math.min(parseInt(numbers), 23);
+      return hours.toString().padStart(2, '0') + ':00';
+    } else {
+      // Sati i minuti
+      const hours = Math.min(parseInt(numbers.substring(0, 2)), 23);
+      const minutes = Math.min(parseInt(numbers.substring(2, 4)), 59);
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+  };
+
   const handleChange = (e) => {
-    let input = e.target.value.replace(/\D/g, ''); // samo brojevi
+    let input = e.target.value;
+    
+    // Ako korisnik briše, dozvoli
+    if (input.length < displayValue.length) {
+      setDisplayValue(input);
+      return;
+    }
+
+    // Automatsko formatiranje tokom kucanja
+    let cleaned = input.replace(/\D/g, '');
     let formatted = '';
     
-    if (input.length >= 1) {
-      let hours = input.substring(0, 2);
-      // Ograniči sate na 0-23
+    if (cleaned.length >= 1) {
+      let hours = cleaned.substring(0, 2);
       if (parseInt(hours) > 23) hours = '23';
-      formatted = hours.padStart(2, '0');
+      formatted = hours;
     }
-    if (input.length >= 3) {
-      let minutes = input.substring(2, 4);
-      // Ograniči minute na 0-59
+    if (cleaned.length >= 3) {
+      let minutes = cleaned.substring(2, 4);
       if (parseInt(minutes) > 59) minutes = '59';
-      formatted += ':' + minutes.padStart(2, '0');
+      formatted += ':' + minutes;
     }
     
     setDisplayValue(formatted);
     
-    // Ako je kompletno vreme (HH:MM), pošalji dalje
+    // Pošalji vrednost dalje samo ako je kompletna (HH:MM)
     if (formatted.length === 5) {
       onChange({ target: { value: formatted } });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    // Enter završava unos
+    if (e.key === 'Enter') {
+      e.target.blur();
     }
   };
 
@@ -108,8 +160,11 @@ function CustomTimeInput({ value, onChange, className, required = false }) {
         type="text"
         value={displayValue}
         onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         className={className}
-        placeholder="HH:MM"
+        placeholder="Ukucaj sate (18 ili 1830)"
         maxLength={5}
         required={required}
       />
@@ -375,6 +430,11 @@ export default function ReservationForm({
                       }}
                     />
                   )}
+                  
+                  {/* POMOĆ ZA VREME */}
+                  <div className="text-xs text-gray-500 mt-1">
+                    💡 Kucaj samo brojeve: <strong>18</strong> → 18:00, <strong>1830</strong> → 18:30
+                  </div>
                 </div>
               </div>
 
